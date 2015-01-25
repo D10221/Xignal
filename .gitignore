@@ -1,6 +1,7 @@
 #Xamarin
 
-Components/ 
+Components/*
+components/*
 
 # Built application files
 *.apk
