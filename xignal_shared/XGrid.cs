@@ -11,7 +11,7 @@ using System.Linq;
 namespace Xignal
 {
 
-	class XGrid{
+	public class XGrid{
 
 		public XLine[] Vlines {	get; private set; }
 		public XLine[] Hlines {	get; private set; }

@@ -59,10 +59,20 @@
   <ItemGroup>
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="JsonHelper.cs" />
-    <Compile Include="Extensions.cs" />
     <Compile Include="Xurface.cs" />
     <Compile Include="NoMain.cs" />
+    <Compile Include="AndroidExtensions.cs" />
+    <Compile Include="MenuItemClickListener.cs" />
+    <Compile Include="CanvasExtensions.cs" />
+    <Compile Include="MenuItemExtensions.cs" />
+    <Compile Include="CanvasActions\CanvasGrid.cs" />
+    <Compile Include="CanvasActions\ICanvasAction.cs" />
+    <Compile Include="CanvasActions\MaxLine.cs" />
+    <Compile Include="CanvasActions\AvgLine.cs" />
+    <Compile Include="CanvasActions\MinLine.cs" />
+    <Compile Include="Render\ISignalRender.cs" />
+    <Compile Include="Render\LinesRender.cs" />
+    <Compile Include="Render\PathsRender.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
@@ -74,12 +84,16 @@
     <AndroidResource Include="Resources\values\Strings.xml" />
     <AndroidResource Include="Resources\drawable-hdpi\Icon.png" />
     <AndroidResource Include="Resources\drawable-hdpi\ic_action_play.png" />
+    <AndroidResource Include="Resources\drawable-hdpi\ic_action_pause.png" />
     <AndroidResource Include="Resources\drawable-mdpi\Icon.png" />
     <AndroidResource Include="Resources\drawable-mdpi\ic_action_play.png" />
+    <AndroidResource Include="Resources\drawable-mdpi\ic_action_pause.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\Icon.png" />
     <AndroidResource Include="Resources\drawable-xhdpi\ic_action_play.png" />
+    <AndroidResource Include="Resources\drawable-xhdpi\ic_action_pause.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\Icon.png" />
     <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_play.png" />
+    <AndroidResource Include="Resources\drawable-xxhdpi\ic_action_pause.png" />
     <AndroidResource Include="Resources\drawable-xxxhdpi\Icon.png" />
     <AndroidResource Include="Resources\layout\main_activity_actions.xml" />
   </ItemGroup>
@@ -90,5 +104,9 @@
       <Version>2.2</Version>
       <Visible>False</Visible>
     </XamarinComponentReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CanvasActions\" />
+    <Folder Include="Render\" />
   </ItemGroup>
 </Project>

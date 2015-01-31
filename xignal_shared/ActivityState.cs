@@ -6,8 +6,6 @@
 // Copyright (c) 2015 Daniel
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
@@ -42,6 +40,7 @@ namespace Xignal
 				Step = Width / Scale;
 				Steps = Width / Step;
 				HalfHeight = Height / 2;
+				HalfWidth = Width / 2;
 				VStep = Height / Scale;
 				VSteps = Height / VStep;
 				if ((int)GridFactor == 0)
@@ -89,8 +88,20 @@ namespace Xignal
 		public int Steps {get;set;} 
 		public int VStep {get;set;} 
 		public int VSteps {get;set;} 
-		public int HalfHeight {get;set;} 
+		public float HalfHeight {get;set;} 
+		public float HalfWidth {get;set;} 
 		public float GridFactor {get;set;}
+
+	}
+
+	public static class StateExtensions{
+
+		public static bool IsStopped(this States state){
+			return state == States.Stopped;
+		}
+		public static bool IsRunning(this States state){
+			return state == States.Running;
+		}
 
 	}
 	
