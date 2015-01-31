@@ -5,7 +5,12 @@
         android:id="@+id/action_play"
         android:icon="@drawable/ic_action_play"
         android:showAsAction="ifRoom" />
-<!-- Settings, should always be in the overflow -->
+<!--
+		<item
+        android:id="@+id/action_pause"
+        android:icon="@drawable/ic_action_pause"
+        android:showAsAction="never" />
+	-->
     <item
         android:id="@+id/action_settings"
         android:title="@string/action_settings"

@@ -1,4 +1,5 @@
-
+using System;
+using Xignal;
 
 namespace Xignal
 {
@@ -14,7 +15,17 @@ namespace Xignal
 			YStart = yStart;
 			XEnd = xEnd;
 			YEnd = yEnd;
-		}
-
+		}			
 	}
+
+	public class HLine: XLine{
+		public HLine (float width,float yPos) 
+			: base (0, yPos, width, yPos)
+		{
+
+		}
+		
+	}
+
+
 }

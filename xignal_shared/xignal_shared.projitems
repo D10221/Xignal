@@ -17,5 +17,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)XLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)States.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Monoids.cs" />
   </ItemGroup>
 </Project>

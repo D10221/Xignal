@@ -9,11 +9,14 @@ using Android.Graphics;
 
 using System.Reactive.Linq;
 using System.ComponentModel;
+using Xignal.CanvasActions;
+using Xignal.Render;
+
 
 namespace Xignal
 {
 	[Activity (Label = "Xignal", MainLauncher = true, Icon = "@drawable/icon")]
-	public class NoMain : Activity , IMenuItemOnMenuItemClickListener
+	public class NoMain : Activity 
 	{
 		const string TAG = "NoMain";
 
@@ -23,31 +26,21 @@ namespace Xignal
 		readonly Random _random =  new Random();
 		IDisposable _subscription ;
 		Action subscribe ;
-		Paint _signalPaint;
-		string _mode;
-		string[] _modes;
 
-		int _gridFactor;
-		bool _showGrid;
-		public Paint GridPaint { get; set; }
 
-		public NoMain(){
-			_gridFactor = 4;
-			_showGrid = false;
 
-			GridPaint = new Paint {
-				Color = Color.LightSalmon,
-				StrokeWidth = 1,
-				AntiAlias = true , 
-			};
 
-			_signalPaint = new Paint { 
-				Color = Color.AliceBlue,
-				StrokeWidth = 2,
-				AntiAlias = true , 
-			};
+		List<ICanvasAction> ICanvasActions;
 
-			Func<XPoint[],Action<Canvas>> _renderLines = torender => new Action<Canvas>((canvas) => {
+		#region Constructor
+
+		public NoMain ()
+		{						
+
+
+			/*Func<XPoint[],Action<Canvas>> _renderLines = torender => new Action<Canvas> ((canvas) => {
+
+				canvas.RotateY (ActivityState);
 
 				foreach (var group in torender.GroupByNext ()) {
 					var start = group.First ();
@@ -55,40 +48,56 @@ namespace Xignal
 					canvas.DrawLine (start.X, start.Y, end.X, end.Y, _signalPaint);
 				}
 
-			});
+				canvas.RotateY (ActivityState);
 
-			Func<XPoint[],Action<Canvas>> _renderPaths = torender => new Action<Canvas>( (canvas) =>
-				{
-					var path = new Path ();
-					var firstY = torender.First ().Y;
-					path.MoveTo (0, 0);
+			});*/
 
-					foreach (var point in torender.ToArray ())
-						path.LineTo (point.X, point.Y);
+			/*Func<XPoint[],Action<Canvas>> _renderPaths = xpoints => new Action<Canvas> ((canvas) => {
 
-					path.LineTo (ActivityState.Height, ActivityState.Height);
-					path.LineTo (0, ActivityState.Height);
-					path.LineTo (0, firstY);
-					path.Close ();
-					canvas.DrawPath (path, _signalPaint);
+				canvas.RotateY (ActivityState);
 
-				}
-			);
+				var path = new Path ();
+				var first = xpoints.First ();
+				var min = xpoints.Min (x=>x.Y);
+				var last = xpoints.Last ();
+				path.MoveTo (0, 0);
+
+				foreach (var point in xpoints.ToArray ())
+					path.LineTo (point.X, point.Y);
+
+				path.LineTo (last.X, min);
+				path.LineTo (first.X, min);
+				path.LineTo (first.X, first.Y);
+				path.Close ();
+				canvas.DrawPath (path, _signalPaint);
+
+				canvas.RotateY (ActivityState);
+			}
+		);
+		*/
+			                                   
 				
-			Render = new Dictionary<string,Func<XPoint[],Action<Canvas>>>{
-				{"lines", _renderLines},
-				{"paths", _renderPaths}
-			};
+			SignalRenders = new List<ISignalRender> ();
 
-			_modes = new[]{"lines", "paths"};
-			_mode = "lines";
+			SignalRenders.Add (new LinesRender());
+			SignalRenders.Add (new PathsRender());
+					
+
+			ICanvasActions = new List<ICanvasAction> ();
+			ICanvasActions.Add (new CanvasGrid ());
+			ICanvasActions.Add (new MaxLine ());
+			ICanvasActions.Add (new MinLine ());
+			ICanvasActions.Add (new AvgLine ());
+								
 		}
 
-		protected override void OnCreate (Bundle bundle)
-		{
-			base.OnCreate (bundle);
+		#endregion
 
-			base.OnCreate (bundle);
+		protected override void OnCreate (Bundle savedInstanceState)
+		{
+			base.OnCreate (savedInstanceState);
+
+			base.OnCreate (savedInstanceState);
 
 			SetContentView (Resource.Layout.Main);
 
@@ -108,7 +117,6 @@ namespace Xignal
 			};
 
 		
-
 			var signalSource = Observable.Interval (TimeSpan.FromMilliseconds (ActivityState.SignalRate))
 				.Select (x => getSignal());
 
@@ -168,33 +176,28 @@ namespace Xignal
 					})
 					.Subscribe (xpoints=>{
 					
-						/*c.DrawText ("Avg x: "+avgX,100,100,_textPaint);
-						c.DrawText ("Min x: "+min,100,125,_textPaint);
-						c.DrawText ("Max x: "+max,100,145,_textPaint);*/
+						var canvasActions = new List<Action<Canvas>>();
 
-						var _actions = new List<Action<Canvas>>();
+						canvasActions.AddRange (ICanvasActions
+							.Where (plugin=> plugin.IsEnabled && plugin.Order == CanvasActionOrder.BeforeSignal)
+							.Select(plugin=> plugin.GetAction(xpoints,ActivityState)));
 
-						if(_showGrid){
-							var grid = new XGrid(ActivityState){IsVisible = _showGrid};
-							Action<Canvas> drawGrid = c => {						
-								foreach(var line in grid.Vlines)
-									c.DrawLine(line.XStart,line.YStart,line.XEnd,line.YEnd,GridPaint);
-								foreach(var line in grid.Hlines)
-									c.DrawLine(line.XStart,line.YStart,line.XEnd,line.YEnd,GridPaint);
-							};
-							_actions.Add(drawGrid);
-						}
+					//Onl;y One
+						canvasActions.Add (SignalRenders.FirstOrDefault (x=> x.IsEnabled).GetAction(xpoints,ActivityState));
 
-						_actions.Add(Render[_mode](xpoints));
+						canvasActions.AddRange (ICanvasActions
+							.Where (plugin=> plugin.IsEnabled && plugin.Order == CanvasActionOrder.AfterSignal)
+							.Select(plugin=> plugin.GetAction(xpoints,ActivityState)));
 
 						using (var _canvas = new Canvas ()){																
-							_surface.Drawit (_canvas,_actions.ToArray ());
+							_surface.Drawit (_canvas,canvasActions.ToArray ());
 						}
-
+							
 						RunOnUiThread (_surface.Invalidate);
 
 					}, /*onCompleted*/subscribe);
 			};
+
 
 			Action Unsubscribe = () => {
 				if(_subscription!=null) _subscription.Dispose ();
@@ -206,6 +209,7 @@ namespace Xignal
 				.Changed				
 				.Where(p=> p.Name == "State")
 				.Subscribe(p => {
+
 					var state = p.Value as States?;
 
 					switch(state){
@@ -218,26 +222,30 @@ namespace Xignal
 					}
 				});
 
-			_surface.Touchs ()
-				.Throttle (TimeSpan.FromMilliseconds (500))
-				.Subscribe (e => {
-				switch(ActivityState.State){
-					case States.Running:
-						ActivityState.State = States.Stopped;
-						break;
-					case States.Stopped:
-						ActivityState.State = States.Running;
-						break;
-				}										
-			});
+			/*_surface.Touchs ()
+				.Throttle (TimeSpan.FromMilliseconds (150))
+				.Subscribe (e => StartStop());
+			*/
+									
+		}
 
 
-						
+		void StartStop(){
+			switch(ActivityState.State){
+				case States.Running:
+					ActivityState.State = States.Stopped;
+					break;
+				case States.Stopped:
+					ActivityState.State = States.Running;
+					break;
+			}	
 		}
 			
-		IDictionary<string,Func<XPoint[],Action<Canvas>>> Render;
+		List<ISignalRender> SignalRenders;
 
 		XPoint shifXtLeft (XPoint point){
+			if (point == null)
+				throw new ArgumentNullException ("point");
 			return shifXtLeftBy (point, 1);
 		}
 
@@ -245,39 +253,43 @@ namespace Xignal
 		{
 			var p = new XPoint (point.X - ActivityState.Step*howMany, point.Y);
 			return p;
-		}
+		}			
 
-		readonly IDictionary<string,IntPtr> _ptrs = new Dictionary<string,IntPtr>();
+		void SetStartSTopIcon(IMenuItem item){
+			item.SetIcon (ActivityState.State.IsStopped ()
+				? Resource.Drawable.ic_action_play 
+				:Resource.Drawable.ic_action_pause);
+		}
 
 		public override bool OnCreateOptionsMenu(IMenu menu) {
 
 			MenuInflater.Inflate(Resource.Layout.main_activity_actions,menu);
 
-			var linesItem = menu.Add ("Lines");
-			linesItem.SetOnMenuItemClickListener (this);
-			_ptrs ["lines"] = linesItem.Handle;
-
-			var pathsItem = menu.Add ("paths");
-			_ptrs ["paths"] = pathsItem.Handle;
-			pathsItem.SetOnMenuItemClickListener (this);
-
-			var grid = menu.Add ("Grid");
-			_ptrs ["grid"] = grid.Handle;
-			grid.SetOnMenuItemClickListener (this);
-
-			return base.OnCreateOptionsMenu(menu);
+			menu.FindItem (Resource.Id.action_play)
+				.With(SetStartSTopIcon)
+				.SetOnMenuItemClickListener ( 
+					new MenuItemClickListener (
+						item =>{ 
+							StartStop ();
+							SetStartSTopIcon(item);
+						}
+					)
+			);
+								
+			foreach(var plugin in SignalRenders){
+				menu.Add (plugin.Title).OnCLick (item => SignalRenders.Enable (plugin)
+			);
 		}
 
-		public bool OnMenuItemClick (IMenuItem item)
-		{
-			var m = _ptrs.FirstOrDefault (p=> p.Value == item.Handle );
-			if(m.Key == "grid") {
-				_showGrid = !_showGrid;
-				return true;
+
+			foreach(var plugin in ICanvasActions){
+				menu.Add (plugin.Title).OnCLick (item => 
+					plugin.IsEnabled = !plugin.IsEnabled
+				);
 			}
-			_mode = m.Key ?? "lines";
-			return true;
-		}
+				
+			return base.OnCreateOptionsMenu(menu);
+		}			
 
 		#region Unused
 
@@ -297,10 +309,7 @@ namespace Xignal
 				"Dont' know what to do with {0}:{1}"
 				.Formatify (ActivityState.State.ToString (), (int)ActivityState.State)
 			);
-		}
-
-
-
+		}			
 
 		bool PauseContinue ()
 		{
@@ -322,6 +331,5 @@ namespace Xignal
 
 
 	}
-
 }
 
