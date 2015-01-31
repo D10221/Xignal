@@ -47,19 +47,20 @@ namespace Xignal
 		{
 		}
 
-		public void Drawit(Canvas canvas, Action<Canvas,View> actions){
-			CanvasAction = actions;
+		public void Drawit(Canvas canvas, params Action<Canvas>[] actions){
+			CanvasActions = actions;
 			Draw (canvas);
 		}
 
 
-		Action<Canvas,View> CanvasAction {get;set;}
+		Action<Canvas>[] CanvasActions {get;set;}
 
 		protected override void OnDraw(Canvas canvas)
 		{
 
-			if (CanvasAction != null) {
-				CanvasAction (canvas, this);
+			if (CanvasActions != null) {
+				foreach(var canvasAction in CanvasActions)
+					canvasAction (canvas);
 			}
 
 			base.OnDraw(canvas);
@@ -67,7 +68,7 @@ namespace Xignal
 
 		public void Clear ()
 		{
-			CanvasAction = null;
+			CanvasActions = null;
 			using (var paint = new Paint {	Color = Color.Black	}) 
 			using (var canvas = new Canvas ()) {
 				canvas.DrawRect(0,0, this.Width,this.Height,paint);

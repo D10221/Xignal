@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xignal", "xignal\xignal.csproj", "{7C70BDC6-8B27-42AB-A919-ACEAEDA24BE4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xignal", "xignal\xignal.csproj", "{7C70BDC6-8B27-42AB-A919-ACEAEDA24BE4}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "xignal_shared", "xignal_shared\xignal_shared.shproj", "{058249B7-7DC0-4956-9564-845FD52570EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

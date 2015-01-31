@@ -1,26 +1,15 @@
 ﻿<Properties StartupItem="xignal\xignal.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Android.XP Nexus S (KitKat)" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="xignal\MainActivity.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="xignal\NoMain.cs">
     <Files>
-      <File FileName="xignal\MainActivity.cs" Line="12" Column="12" />
-      <File FileName="xignal\Xurface.cs" Line="23" Column="23" />
-      <File FileName="xignal\Extensions.cs" Line="33" Column="33" />
+      <File FileName="xignal\NoMain.cs" Line="1" Column="1" />
+      <File FileName="xignal\XPoint.cs" Line="1" Column="1" />
+      <File FileName="xignal_shared\MyClass.cs" Line="1" Column="1" />
     </Files>
-    <Pads>
-      <Pad Id="ProjectPad">
-        <State expanded="True">
-          <Node name="xignal" expanded="True" selected="True">
-            <Node name="Resources" expanded="True" />
-          </Node>
-        </State>
-      </Pad>
-      <Pad Id="MonoDevelop.Debugger.WatchPad">
-        <State />
-      </Pad>
-    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.xignal MonoForAntroid.PreferredDevice="Nexus 4" />
 </Properties>

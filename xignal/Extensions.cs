@@ -11,6 +11,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive;
 using Android.Widget;
+using Android.Views;
+using TouchEventArgs = Android.Views.View.TouchEventArgs;
 
 namespace Xignal
 {
@@ -54,6 +56,18 @@ namespace Xignal
 		//LongClick
 		public static IObservable<EventPattern<Android.Views.View.LongClickEventArgs>> LongClicks(this Button button){
 			return Observable.FromEventPattern<Android.Views.View.LongClickEventArgs>(x => button.LongClick += x, x => button.LongClick -= x);
+		}
+
+		public static IObservable<EventPattern<TouchEventArgs>> Touchs(this View view){
+			return Observable.FromEventPattern<TouchEventArgs> (x => view.Touch += x, x => view.Touch -= x);
+		}
+			
+		public static IObservable<EventPattern<EventArgs>> Clicks(this View view){
+			return Observable.FromEventPattern (x => view.Click += x, x => view.Click -= x);
+		}
+		//LongClick
+		public static IObservable<EventPattern<Android.Views.View.LongClickEventArgs>> LongClicks(this View view){
+			return Observable.FromEventPattern<Android.Views.View.LongClickEventArgs>(x => view.LongClick += x, x => view.LongClick -= x);
 		}
 	}
 }

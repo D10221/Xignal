@@ -2,4 +2,7 @@
 <resources>
 	<string name="hello">Hello World, Click Me!</string>
 	<string name="app_name">Xignal</string>
+	<string name="action_play">Capture</string>
+	<string name="action_settings">Settings</string>
+
 </resources>

@@ -45,7 +45,10 @@ namespace Xignal
 		{
 			
 			// aapt resource value: 0x7f020000
-			public const int Icon = 2130837504;
+			public const int ic_action_play = 2130837504;
+			
+			// aapt resource value: 0x7f020001
+			public const int Icon = 2130837505;
 			
 			static Drawable()
 			{
@@ -60,14 +63,17 @@ namespace Xignal
 		public partial class Id
 		{
 			
+			// aapt resource value: 0x7f050002
+			public const int action_play = 2131034114;
+			
+			// aapt resource value: 0x7f050003
+			public const int action_settings = 2131034115;
+			
 			// aapt resource value: 0x7f050000
 			public const int linearLayout1 = 2131034112;
 			
 			// aapt resource value: 0x7f050001
-			public const int startStopBtn = 2131034113;
-			
-			// aapt resource value: 0x7f050002
-			public const int surfaceView1 = 2131034114;
+			public const int surfaceView1 = 2131034113;
 			
 			static Id()
 			{
@@ -85,6 +91,9 @@ namespace Xignal
 			// aapt resource value: 0x7f030000
 			public const int Main = 2130903040;
 			
+			// aapt resource value: 0x7f030001
+			public const int main_activity_actions = 2130903041;
+			
 			static Layout()
 			{
 				global::Android.Runtime.ResourceIdManager.UpdateIdValues();
@@ -97,6 +106,12 @@ namespace Xignal
 		
 		public partial class String
 		{
+			
+			// aapt resource value: 0x7f040002
+			public const int action_play = 2130968578;
+			
+			// aapt resource value: 0x7f040003
+			public const int action_settings = 2130968579;
 			
 			// aapt resource value: 0x7f040001
 			public const int app_name = 2130968577;
