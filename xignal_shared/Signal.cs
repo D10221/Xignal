@@ -1,4 +1,4 @@
-// Signal.cs
+/*// Signal.cs
 //
 // Author:
 //       Daniel <>
@@ -28,3 +28,4 @@ namespace Xignal
 	}
 	
 }
+*/

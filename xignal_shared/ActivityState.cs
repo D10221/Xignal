@@ -9,6 +9,8 @@ using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using XPoint = Xignal.XPoint<float,float>;
+using Android.Content;
 
 namespace Xignal
 {
@@ -21,12 +23,12 @@ namespace Xignal
 
 		public ActivityState ()
 		{
-			allPoints = new XPoint[0];
+			AllPoints = new XPoint[0];
 			_subject = new ReplaySubject<PropertyChange> ();
 			Changed = _subject.AsObservable ();
 		}
 		
-		public XPoint[] allPoints { get; set;}
+		public XPoint[] AllPoints { get; set;}
 
 		int _width;
 
@@ -49,10 +51,7 @@ namespace Xignal
 
 		}
 
-		public bool IsScreenFull(Signal x) { 
-			return x.X > Steps || Steps == 0 ; 
-		}
-		public bool IsThereRoomFor(Signal x) { return ! IsScreenFull (x) ; }
+
 
 		public int Width {
 			get{
@@ -61,6 +60,7 @@ namespace Xignal
 			set {
 				if (Equals (value, _width))	return;
 				_width = value;
+				NotifyChanged (value);
 			}
 		}
 		States _state;
@@ -75,7 +75,7 @@ namespace Xignal
 			}
 		}
 
-		void NotifyChanged (States value,[CallerMemberName] string name = null )
+		void NotifyChanged (object value,[CallerMemberName] string name = null )
 		{
 			_subject.OnNext (new PropertyChange(name,value));
 		}
@@ -93,12 +93,31 @@ namespace Xignal
 		public float GridFactor {get;set;}
 
 	}
+	public static class ActivityStateExtensions{
 
+		public static bool IsScreenFull(this ActivityState context,XPoint x) { 
+			return x.X > context.Steps || context.Steps == 0 ; 
+		}
+
+		public static bool IsThereRoomFor(this ActivityState context, XPoint x) {
+			return ! context.IsScreenFull (x) ; 
+		}
+
+		public static bool IsRelativeLast(this ActivityState context, XPoint x){
+			return ((int)x.X) % context.Steps == 0;
+		}
+
+		public static bool IsRelativeFirst(this ActivityState context, XPoint x){
+			return ( ((int)x.X) - 1 ) % context.Steps == 0;
+		}
+
+	}
 	public static class StateExtensions{
 
 		public static bool IsStopped(this States state){
 			return state == States.Stopped;
 		}
+
 		public static bool IsRunning(this States state){
 			return state == States.Running;
 		}

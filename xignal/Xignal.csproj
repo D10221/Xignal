@@ -73,6 +73,8 @@
     <Compile Include="Render\ISignalRender.cs" />
     <Compile Include="Render\LinesRender.cs" />
     <Compile Include="Render\PathsRender.cs" />
+    <Compile Include="ISignalPreProcessor.cs" />
+    <Compile Include="ContinuousPreProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />

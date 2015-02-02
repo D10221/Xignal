@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using Android.Graphics;
+using XPoint = Xignal.XPoint<float,float>;
 
 namespace Xignal.CanvasActions
 {

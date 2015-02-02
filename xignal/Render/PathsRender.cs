@@ -9,6 +9,7 @@ using System;
 using Android.Graphics;
 using Xignal.Render;
 using System.Linq;
+using XPoint = Xignal.XPoint<float,float>;
 
 namespace Xignal.Render
 {

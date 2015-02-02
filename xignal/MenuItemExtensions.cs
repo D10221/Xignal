@@ -22,7 +22,7 @@ namespace Xignal
 			itemAction (item);
 			return item;
 		}
-		public static IMenuItem OnCLick(this IMenuItem item, Action<IMenuItem> clickAction){
+		public static IMenuItem OnClick(this IMenuItem item, Action<IMenuItem> clickAction){
 			return item.SetOnMenuItemClickListener (new MenuItemClickListener(clickAction));
 		}
 	}

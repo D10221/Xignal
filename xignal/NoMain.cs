@@ -11,7 +11,8 @@ using System.Reactive.Linq;
 using System.ComponentModel;
 using Xignal.CanvasActions;
 using Xignal.Render;
-
+using XPoint = Xignal.XPoint<float,float>;
+using XPoints = System.Collections.Generic.IEnumerable<Xignal.XPoint<float,float>>;
 
 namespace Xignal
 {
@@ -27,71 +28,30 @@ namespace Xignal
 		IDisposable _subscription ;
 		Action subscribe ;
 
-
-
-
-		List<ICanvasAction> ICanvasActions;
+		List<ISignalRender> SignalRenders;
+		List<ICanvasAction> CanvasActions;
 
 		#region Constructor
 
 		public NoMain ()
-		{						
-
-
-			/*Func<XPoint[],Action<Canvas>> _renderLines = torender => new Action<Canvas> ((canvas) => {
-
-				canvas.RotateY (ActivityState);
-
-				foreach (var group in torender.GroupByNext ()) {
-					var start = group.First ();
-					var end = group.Last ();
-					canvas.DrawLine (start.X, start.Y, end.X, end.Y, _signalPaint);
-				}
-
-				canvas.RotateY (ActivityState);
-
-			});*/
-
-			/*Func<XPoint[],Action<Canvas>> _renderPaths = xpoints => new Action<Canvas> ((canvas) => {
-
-				canvas.RotateY (ActivityState);
-
-				var path = new Path ();
-				var first = xpoints.First ();
-				var min = xpoints.Min (x=>x.Y);
-				var last = xpoints.Last ();
-				path.MoveTo (0, 0);
-
-				foreach (var point in xpoints.ToArray ())
-					path.LineTo (point.X, point.Y);
-
-				path.LineTo (last.X, min);
-				path.LineTo (first.X, min);
-				path.LineTo (first.X, first.Y);
-				path.Close ();
-				canvas.DrawPath (path, _signalPaint);
-
-				canvas.RotateY (ActivityState);
-			}
-		);
-		*/
-			                                   
-				
+		{					
+			                                   				
 			SignalRenders = new List<ISignalRender> ();
 
 			SignalRenders.Add (new LinesRender());
-			SignalRenders.Add (new PathsRender());
-					
+			SignalRenders.Add (new PathsRender());					
 
-			ICanvasActions = new List<ICanvasAction> ();
-			ICanvasActions.Add (new CanvasGrid ());
-			ICanvasActions.Add (new MaxLine ());
-			ICanvasActions.Add (new MinLine ());
-			ICanvasActions.Add (new AvgLine ());
+			CanvasActions = new List<ICanvasAction> ();
+			CanvasActions.Add (new CanvasGrid ());
+			CanvasActions.Add (new MaxLine ());
+			CanvasActions.Add (new MinLine ());
+			CanvasActions.Add (new AvgLine ());
 								
 		}
 
 		#endregion
+
+		PreProcessorType  PreProcessorType = PreProcessorType.Endless;
 
 		protected override void OnCreate (Bundle savedInstanceState)
 		{
@@ -110,82 +70,52 @@ namespace Xignal
 			ActivityState.SignalRate = 200;
 
 
-			Func<int> getSignal = () => {
+			Func<float> getSignal = () => {
 				var halfHeight = ActivityState.Height / 2;
 				var r = _random.Next (-halfHeight, halfHeight);
 				return halfHeight + r;
 			};
-
-		
+						
 			var signalSource = Observable.Interval (TimeSpan.FromMilliseconds (ActivityState.SignalRate))
 				.Select (x => getSignal());
 
-			var timer = Observable.Interval (TimeSpan.FromMilliseconds (ActivityState.SamplingRate));
+			var timer = Observable.Interval (TimeSpan.FromMilliseconds (ActivityState.SamplingRate))
+				.Select (x=> (float)x);
 
 			var signalSources = timer
 			              // Setup , dimensions 
 				.Do (x => 
 					ActivityState.SetDimensions (_surface.Width, _surface.Height))
 			              //Merge Signal and TimeLine
-				.Zip (signalSource, (x, y) => new Signal ((int)x,y));
+				.Zip (signalSource, (x, y) => XPointFty.New (x,y));
 
-			var points = new List<XPoint> ();
-
-							
-			Func<Signal,XPoint> toXPoint = rsignal=> new XPoint(rsignal.X * ActivityState.Step ,rsignal.Y);
-
-
-			Func<Signal,Signal> frameByFrame = (rawSignal)=> {
-
-				if (ActivityState.IsThereRoomFor (rawSignal)) return rawSignal;
-
-				points = points
-					.Skip(points.Count)
-					.Select(x=> shifXtLeftBy(x, points.Count))
-					.ToList ();
-
-				return new Signal (rawSignal.X - points.Count , rawSignal.Y);
-			};
-
-			Func<Signal,Signal> continuosSignal = (rawSignal)=> {
-
-				if (ActivityState.IsThereRoomFor (rawSignal)) return rawSignal;
-
-				points = points.Skip(1).Select(shifXtLeft).ToList ();
-
-				return new Signal (points.Count , rawSignal.Y);
-			};
-
-			IDictionary<string,Func<Signal,Signal>> signalPreProcessors = new Dictionary<string,Func<Signal,Signal>> {
-				{"continuosSignal", continuosSignal},
-				{"frameByFrame", frameByFrame }
-			};
-
-			const string renderMode = "continuosSignal";
+			//IEnumerable<XPoint> points = new List<XPoint> ();
+										
+			_signalPreProcessor =  PreProcessorFty.Create (_signalPreProcessor,PreProcessorType);
 
 			subscribe = () => {
-				points = new List<XPoint>();
+				//points = new List<XPoint>();
 				if(_subscription!=null ) _subscription.Dispose ();
 				_subscription = signalSources
-					.TakeWhile (x => ActivityState.State == States.Running)				
-					.Select (rawSignal => signalPreProcessors [renderMode] (rawSignal))
-					.Select (toXPoint)
-					.Select (point=> {
-						points.Add(point);
-						return points.ToArray ();
-					})
+					.TakeWhile (x => ActivityState.State == States.Running)	
+					//Arrange
+					.Select ( rawSignal=> {				
+						return _signalPreProcessor.Arrange (ActivityState, rawSignal).ToArray ();
+					})					
 					.Subscribe (xpoints=>{
 					
 						var canvasActions = new List<Action<Canvas>>();
 
-						canvasActions.AddRange (ICanvasActions
+						//Before Signal
+						canvasActions.AddRange (CanvasActions
 							.Where (plugin=> plugin.IsEnabled && plugin.Order == CanvasActionOrder.BeforeSignal)
 							.Select(plugin=> plugin.GetAction(xpoints,ActivityState)));
 
-					//Onl;y One
+						// Highlander principle : Only One
 						canvasActions.Add (SignalRenders.FirstOrDefault (x=> x.IsEnabled).GetAction(xpoints,ActivityState));
 
-						canvasActions.AddRange (ICanvasActions
+						//After Signal
+						canvasActions.AddRange (CanvasActions
 							.Where (plugin=> plugin.IsEnabled && plugin.Order == CanvasActionOrder.AfterSignal)
 							.Select(plugin=> plugin.GetAction(xpoints,ActivityState)));
 
@@ -203,8 +133,6 @@ namespace Xignal
 				if(_subscription!=null) _subscription.Dispose ();
 			};
 				
-			//subscribe ();
-
 			ActivityState
 				.Changed				
 				.Where(p=> p.Name == "State")
@@ -220,14 +148,11 @@ namespace Xignal
 							Unsubscribe();
 							break;
 					}
-				});
-
-			/*_surface.Touchs ()
-				.Throttle (TimeSpan.FromMilliseconds (150))
-				.Subscribe (e => StartStop());
-			*/
+				});	
+					
 									
 		}
+		ISignalPreProcessor _signalPreProcessor;
 
 
 		void StartStop(){
@@ -241,20 +166,6 @@ namespace Xignal
 			}	
 		}
 			
-		List<ISignalRender> SignalRenders;
-
-		XPoint shifXtLeft (XPoint point){
-			if (point == null)
-				throw new ArgumentNullException ("point");
-			return shifXtLeftBy (point, 1);
-		}
-
-		XPoint shifXtLeftBy (XPoint point, int howMany )
-		{
-			var p = new XPoint (point.X - ActivityState.Step*howMany, point.Y);
-			return p;
-		}			
-
 		void SetStartSTopIcon(IMenuItem item){
 			item.SetIcon (ActivityState.State.IsStopped ()
 				? Resource.Drawable.ic_action_play 
@@ -277,16 +188,30 @@ namespace Xignal
 			);
 								
 			foreach(var plugin in SignalRenders){
-				menu.Add (plugin.Title).OnCLick (item => SignalRenders.Enable (plugin)
-			);
-		}
+				menu.Add (plugin.Title).OnClick (
+					item => SignalRenders.Enable (plugin)
+				);
+			}
 
-
-			foreach(var plugin in ICanvasActions){
-				menu.Add (plugin.Title).OnCLick (item => 
+			foreach(var plugin in CanvasActions){
+				menu.Add (plugin.Title).OnClick (item => 
 					plugin.IsEnabled = !plugin.IsEnabled
 				);
 			}
+			menu.Add ("ByFrame").OnClick (item => {
+
+				if(PreProcessorType == PreProcessorType.Endless ){
+					PreProcessorType = PreProcessorType.ByFrame;
+					item.SetTitle ("EndLess");
+				}else{
+					PreProcessorType = PreProcessorType.Endless;
+					item.SetTitle ("ByFrame");
+				}
+				_signalPreProcessor = PreProcessorFty.Create (_signalPreProcessor, PreProcessorType.ByFrame);
+			});
+
+
+
 				
 			return base.OnCreateOptionsMenu(menu);
 		}			
@@ -326,10 +251,27 @@ namespace Xignal
 			}
 			return changed;
 		}
-
 		#endregion
+	}
 
+	public static class ObservableXPointExtensions{
+
+		public static IObservable<XPoints> Arrange(
+			this IObservable<XPoint> incoming,
+			Func<IObservable<XPoint>,
+			IObservable<XPoints>> transform){
+			return transform (incoming);
+		}
+
+		public static XPoints Arrange(
+			this XPoint incoming,
+			Func<XPoint,XPoints>  transform
+		){
+			return transform (incoming);
+		}
+			
 
 	}
+
 }
 

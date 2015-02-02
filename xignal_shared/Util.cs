@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using XPoint = Xignal.XPoint<float,float>;
 
 namespace Xignal
 {
@@ -15,7 +16,7 @@ namespace Xignal
 			
 		public IEnumerable<XPoint> ToPoints(XPoint point){
 			{
-				var allPoints = ActivityState.allPoints;
+				var allPoints = ActivityState.AllPoints;
 				//var _step = ActivityState.Step;
 				var _steps = ActivityState.Steps;
 				var _width = ActivityState.Width;
