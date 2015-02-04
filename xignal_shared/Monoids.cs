@@ -16,10 +16,16 @@ namespace Xignal
 	/// </summary>
 	public static class Monoids{
 
-		public static void With<T>(this T plugin, Action<T> action){
-			if (Equals (plugin, default(T)) || action == null )
+		public static T DoWith<T>(this T target, Action<T> action){
+			if (Equals (target, default(T)) || action == null )
+				action(target);
+			return  target;
+		}
+
+		public static void With<T>(this T target, Action<T> action){
+			if (Equals (target, default(T)) || action == null )
 				return;
-			action(plugin);
+			action(target);
 		}
 
 		public static R With<T,R>(this T plugin, Func<T,R> action){

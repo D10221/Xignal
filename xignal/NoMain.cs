@@ -8,7 +8,6 @@ using Android.Views;
 using Android.Graphics;
 
 using System.Reactive.Linq;
-using System.ComponentModel;
 using Xignal.CanvasActions;
 using Xignal.Render;
 using XPoint = Xignal.XPoint<float,float>;
@@ -28,8 +27,8 @@ namespace Xignal
 		IDisposable _subscription ;
 		Action subscribe ;
 
-		List<ISignalRender> SignalRenders;
-		List<ICanvasAction> CanvasActions;
+		readonly List<ISignalRender> SignalRenders;
+		readonly List<ICanvasAction> CanvasActions;
 
 		#region Constructor
 
@@ -80,7 +79,7 @@ namespace Xignal
 				.Select (x => getSignal());
 
 			var timer = Observable.Interval (TimeSpan.FromMilliseconds (ActivityState.SamplingRate))
-				.Select (x=> (float)x);
+				.Select (x=> (int)x);
 
 			var signalSources = timer
 			              // Setup , dimensions 
@@ -148,8 +147,7 @@ namespace Xignal
 							Unsubscribe();
 							break;
 					}
-				});	
-					
+				});						
 									
 		}
 		ISignalPreProcessor _signalPreProcessor;
@@ -177,7 +175,7 @@ namespace Xignal
 			MenuInflater.Inflate(Resource.Layout.main_activity_actions,menu);
 
 			menu.FindItem (Resource.Id.action_play)
-				.With(SetStartSTopIcon)
+				.DoWith(SetStartSTopIcon)
 				.SetOnMenuItemClickListener ( 
 					new MenuItemClickListener (
 						item =>{ 
@@ -207,51 +205,11 @@ namespace Xignal
 					PreProcessorType = PreProcessorType.Endless;
 					item.SetTitle ("ByFrame");
 				}
-				_signalPreProcessor = PreProcessorFty.Create (_signalPreProcessor, PreProcessorType.ByFrame);
+				_signalPreProcessor = PreProcessorFty.Create (_signalPreProcessor, PreProcessorType);
 			});
-
-
-
-				
+												
 			return base.OnCreateOptionsMenu(menu);
-		}			
-
-		#region Unused
-
-		string GetNextStateDescription ()
-		{
-
-			switch (ActivityState.State) {
-				case States.Stopped:
-					return "Start";
-				case States.Running:
-					return "Freeze";
-				case States.Paused:
-					return "Continue";
-			}
-
-			throw new InvalidEnumArgumentException (
-				"Dont' know what to do with {0}:{1}"
-				.Formatify (ActivityState.State.ToString (), (int)ActivityState.State)
-			);
-		}			
-
-		bool PauseContinue ()
-		{
-			var changed = false;
-			switch (ActivityState.State) {
-				case States.Running:
-					ActivityState.State = States.Paused;
-					changed = true;
-					break;
-				case States.Paused:
-					ActivityState.State = States.Running;
-					changed = true;
-					break;
-			}
-			return changed;
-		}
-		#endregion
+		}						
 	}
 
 	public static class ObservableXPointExtensions{

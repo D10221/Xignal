@@ -10,7 +10,6 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using XPoint = Xignal.XPoint<float,float>;
-using Android.Content;
 
 namespace Xignal
 {

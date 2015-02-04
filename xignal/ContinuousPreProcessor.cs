@@ -11,49 +11,57 @@ using System.Linq;
 
 using XPoint = Xignal.XPoint<float,float>;
 using XPoints = System.Collections.Generic.IEnumerable<Xignal.XPoint<float,float>>;
+using RPoint = Xignal.XPoint<int,float>;
+using RPoints = System.Collections.Generic.IEnumerable<Xignal.XPoint<int,float>>;
+
 
 namespace Xignal
 {
 
 	class ContinuousPreProcessor: ISignalPreProcessor{
 	
-		public List<XPoint> Points { get; private set;}
+		public List<RPoint> Points { get; private set;}
 
 		public Guid Identifier  { get; private set; }
 
-
-		public ContinuousPreProcessor( IEnumerable<XPoint> points = null){
+		public ContinuousPreProcessor( RPoints points = null){
 
 			Identifier = Guid.NewGuid ();
 
 			Points = points != null
 				? points.ToList () 
-				: new List<XPoint> ();
+				: new List<RPoint> ();
 				
 		}
 
-		public 	XPoints Arrange(ActivityState context, XPoint rawSignal){
+		public 	XPoints Arrange(ActivityState context, RPoint rawSignal){
 
-			//_context = context;
+			var step = context.Step;
 
-			var point = Expand (context, Shift (context,rawSignal)  );
+			var last = context.Steps + 1;
 
-			Points.Add(point);
+			var m = rawSignal.X % (last); 
 
-			return Points.ToArray ();
+			var next = Points.Count + 1;
+
+			var index = next == m+1 ? m : next;
+
+			var skip = rawSignal.X / last != 0 ;
+
+			if(skip)
+			Points = Points
+				//.Skip (skip ? 1: 0)
+				.Select(x=>  new RPoint(x.X - 1 , x.Y))
+				//.Take(last)
+				.Where (x=> x.X >=0 )
+				.ToList ();		
+
+			Points.Add (new RPoint( skip? context.Steps: index , rawSignal.Y));
+
+			//Scale
+			return Points.Select(x=> new XPoint(x.X*step ,  x.Y)).ToArray ();
 		}
 			
-		XPoint Shift(ActivityState context,XPoint rawSignal){
-		
-			if (context.IsThereRoomFor (rawSignal)) return rawSignal;
-
-			Points = Points.Skip(1).Select(
-				point => new XPoint (point.X - context.Step * 1, point.Y)
-			).ToList ();
-
-			return XPointFty.New((float)Points.Count , rawSignal.Y);
-		}
-
 		XPoint Expand(ActivityState  context, XPoint rawSignal){
 			return XPointFty.New (rawSignal.X * context.Step, rawSignal.Y);
 		}
@@ -61,73 +69,10 @@ namespace Xignal
 	}
 
 
-	class FramePreProcessor: ISignalPreProcessor
-	{
-
-		public Guid Identifier  { get; private set; }
-
-		public List<XPoint> Points { get; private set;}
-
-
-		public FramePreProcessor(IEnumerable<XPoint> points = null){
-
-			Identifier = Guid.NewGuid ();
-
-			Points = points != null
-				? points.ToList () 
-				: new List<XPoint> ();
-											
-		}
-
-		public 	XPoints Arrange(ActivityState context , XPoint rawSignal){
-
-
-			var index = (int) rawSignal.X % (context.Steps+1)  ;
-
-			if(index == 0 )
-				Points = new List<XPoint> ();
-				
-			var step = (float)((index) * context.Step);
-
-			Points.Add(XPointFty.New (step , rawSignal.Y));
-
-			return Points.ToArray ();
-
-		}
-			
-	}
-
-
-	class PreProcessor : ISignalPreProcessor
-	{
-
-		public Guid Identifier  { get; private set; }
-
-		public List<XPoint> Points { get; private set;}
-
-		readonly Func<ActivityState,XPoints,XPoint,XPoints> _arranger;
-
-		public PreProcessor(Func<ActivityState,XPoints,XPoint,XPoints> arranger,IEnumerable<XPoint> points = null){
-
-			Identifier = Guid.NewGuid ();
-
-			Points = points != null
-				? points.ToList () 
-				: new List<XPoint> ();
-				
-			_arranger = arranger;
-		}
-
-		public 	XPoints Arrange(ActivityState context , XPoint rawSignal){
-		
-			return _arranger (context,Points,rawSignal);
-		}
-
-	}
 
 	static class PreProcessorFty{
 
-		static List<XPoint> Points ;
+		static List<RPoint> Points ;
 
 		public static ISignalPreProcessor Create(ISignalPreProcessor previous,PreProcessorType type= PreProcessorType.Endless){
 
@@ -135,19 +80,32 @@ namespace Xignal
 				Points = previous.Points;
 
 			switch(type){
+
 				case PreProcessorType.ByFrame:
+
 					return new PreProcessor ((context,xpoints,rawSignal) => {
 
-						var index = (int)rawSignal.X % (context.Steps + 1);
+						var last = context.Steps + 1;
+
+						var m = rawSignal.X % (last); 
+
+						var next = Points.Count + 1 <= last ? Points.Count + 1 : 0 ;
+
+						var index = next == m+1 ? m : next;					
 
 						if (index == 0)
-							Points = new List<XPoint> ();
+							Points = new List<RPoint> ();
+							
+						Points.Add (new RPoint(index, rawSignal.Y));
 
-						var step = (float)((index) * context.Step);
+						//Scale
+						return Points.Select( x => { 
 
-						Points.Add (XPointFty.New (step, rawSignal.Y));
+								var step = (float)((x.X) * context.Step);
 
-						return Points.ToArray ();
+								return XPointFty.New (step, x.Y);
+							}
+						).ToArray ();
 
 					},Points);
 
