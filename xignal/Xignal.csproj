@@ -35,7 +35,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
-    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+    <DebugSymbols>true</DebugSymbols>
+    <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -73,6 +74,9 @@
     <Compile Include="Render\ISignalRender.cs" />
     <Compile Include="Render\LinesRender.cs" />
     <Compile Include="Render\PathsRender.cs" />
+    <Compile Include="ISignalPreProcessor.cs" />
+    <Compile Include="ContinuousPreProcessor.cs" />
+    <Compile Include="PreProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\AboutResources.txt" />
